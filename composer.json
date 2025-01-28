@@ -36,6 +36,7 @@
         "symfony/config": "^7.2",
         "symfony/dependency-injection": "^7.2",
         "symfony/event-dispatcher": "^7.2",
+        "symfony/expression-language": "^7.2",
         "zenstruck/dsn": "^0.2",
         "zenstruck/uri": "^2.3"
     },

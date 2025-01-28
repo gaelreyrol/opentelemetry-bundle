@@ -3,6 +3,7 @@
 namespace FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace;
 
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\Sampler\AttributeBasedSampler;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\Sampler\ExpressionBasedSampler;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOffSampler;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
 use OpenTelemetry\SDK\Trace\Sampler\ParentBased;
@@ -26,6 +27,7 @@ final class SamplerFactory
             TraceSamplerEnum::ParentBasedTraceIdRatio => new ParentBased(new TraceIdRatioBasedSampler(...$params)),
             TraceSamplerEnum::TraceIdRatio => new TraceIdRatioBasedSampler(...$params),
             TraceSamplerEnum::AttributeBased => new AttributeBasedSampler(...$params),
+            TraceSamplerEnum::ExpressionBased => new ExpressionBasedSampler(...$params),
             default => throw new \InvalidArgumentException(sprintf('Unknown sampler: %s', $name)),
         };
     }
