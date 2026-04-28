@@ -13,9 +13,9 @@ class TraceableMessengerTransport implements TransportInterface
     private TransportTracer $tracer;
 
     public function __construct(
-        private TransportInterface $transport,
+        protected TransportInterface $transport,
         TracerInterface $tracer,
-        private ?LoggerInterface $logger = null,
+        protected ?LoggerInterface $logger = null,
     ) {
         $this->tracer = new TransportTracer($tracer, $this->logger);
     }

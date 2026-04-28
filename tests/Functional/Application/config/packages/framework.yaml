@@ -15,6 +15,10 @@ framework:
         dsn: 'trace(in-memory://default)'
         retry_strategy:
           max_retries: 0
+      setup:
+        dsn: 'trace(doctrine://app?table_name=messenger_messages_setup_test&auto_setup=false)'
+        retry_strategy:
+          max_retries: 0
     routing:
       'App\Message\*': main
     buses:
