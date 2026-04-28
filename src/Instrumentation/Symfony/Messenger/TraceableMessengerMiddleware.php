@@ -30,6 +30,9 @@ class TraceableMessengerMiddleware implements MiddlewareInterface
 
         try {
             return $stack->next()->handle($envelope, $stack);
+        } catch (\Throwable $exception) {
+            $stack->stop($exception);
+            throw $exception;
         } finally {
             $stack->stop();
         }

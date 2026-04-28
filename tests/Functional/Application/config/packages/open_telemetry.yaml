@@ -30,6 +30,7 @@ open_telemetry:
       tracing:
         enabled: true
     messenger:
+      type: attribute
       tracing:
         enabled: true
     twig:
@@ -111,6 +112,10 @@ when@auto:
           enabled: true
           exclude_paths:
             - ^/auto-exclude$
+      messenger:
+        type: auto
+        tracing:
+          enabled: true
 when@empty_excludes:
   open_telemetry:
     instrumentation:

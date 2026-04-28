@@ -1,6 +1,7 @@
 <?php
 
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Context\Propagator\HeadersPropagator as HeadersPropagationGetter;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Context\Propagator\PropagatorFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Exporter\ExporterDsn;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Exporter\OtlpExporterOptions;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Resource\ResourceInfoFactory;
@@ -32,6 +33,7 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('open_telemetry.propagator_text_map.noop', NoopTextMapPropagator::class)
         ->set('open_telemetry.propagator_text_map.multi', MultiTextMapPropagator::class)
+            ->factory([PropagatorFactory::class, 'createDefault'])
 
         ->set('open_telemetry.propagation_getter.headers', HeadersPropagationGetter::class)
         ->set('open_telemetry.propagation_getter.sanitize_combined_headers', SanitizeCombinedHeadersPropagationGetter::class)

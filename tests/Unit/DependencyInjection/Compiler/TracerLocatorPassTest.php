@@ -17,6 +17,7 @@ class TracerLocatorPassTest extends AbstractCompilerPassTestCase
 
         $container->setDefinition('open_telemetry.instrumentation.console.trace.event_subscriber', new Definition());
         $container->setDefinition('open_telemetry.instrumentation.http_kernel.trace.event_subscriber', new Definition());
+        $container->setDefinition('open_telemetry.instrumentation.messenger.worker', new Definition());
     }
 
     public function testNoTracerLocator(): void
@@ -28,6 +29,9 @@ class TracerLocatorPassTest extends AbstractCompilerPassTestCase
 
         $httpKernel = $this->container->getDefinition('open_telemetry.instrumentation.http_kernel.trace.event_subscriber');
         self::assertEquals([], $httpKernel->getArguments());
+
+        $messenger = $this->container->getDefinition('open_telemetry.instrumentation.messenger.worker');
+        self::assertEquals([], $messenger->getArguments());
     }
 
     public function testTracerLocator(): void
@@ -42,5 +46,8 @@ class TracerLocatorPassTest extends AbstractCompilerPassTestCase
 
         $httpKernel = $this->container->getDefinition('open_telemetry.instrumentation.http_kernel.trace.event_subscriber');
         self::assertArrayHasKey('$tracerLocator', $httpKernel->getArguments());
+
+        $messenger = $this->container->getDefinition('open_telemetry.instrumentation.messenger.worker');
+        self::assertArrayHasKey('$tracerLocator', $messenger->getArguments());
     }
 }

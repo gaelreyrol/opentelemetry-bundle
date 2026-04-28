@@ -58,7 +58,7 @@ final class ConfigurationTest extends TestCase
                     'type' => 'auto',
                     'tracing' => [
                         'enabled' => false,
-                        'exclude_commands' => [],
+                        'exclude_commands' => ['messenger:consume'],
                     ],
                     'metering' => [
                         'enabled' => false,
@@ -177,7 +177,10 @@ final class ConfigurationTest extends TestCase
                         tracer:               ~
 
                         # Exclude commands from auto instrumentation
-                        exclude_commands:     []
+                        exclude_commands:
+
+                            # Default:
+                            - messenger:consume
                     metering:
                         enabled:              false
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfOpenTelemetry\OpenTelemetryBundle\Tests\Functional\Instrumentation;
+namespace FriendsOfOpenTelemetry\OpenTelemetryBundle\Tests\Functional\Instrumentation\Messenger;
 
 use App\Kernel;
 use App\Message\DummyMessage;
@@ -12,7 +12,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[Env('KERNEL_CLASS', Kernel::class)]
-class MessengerTracingTest extends KernelTestCase
+class MessengerDispatchTracingTest extends KernelTestCase
 {
     use TracingTestCaseTrait;
 
@@ -41,14 +41,14 @@ class MessengerTracingTest extends KernelTestCase
         self::assertSpanName($middlewareSpan, 'messenger.middleware');
         self::assertSpanStatus($middlewareSpan, StatusData::ok());
         self::assertSpanAttributes($middlewareSpan, [
-            'event.category' => 'messenger.middleware',
-            'bus.name' => 'default',
-            'event.current' => '"Symfony\Component\Messenger\Middleware\SendMessageMiddleware" on "default"',
+            'symfony.messenger.event.category' => 'messenger.middleware',
+            'symfony.messenger.bus.name' => 'default',
+            'symfony.messenger.event.current' => '"Symfony\Component\Messenger\Middleware\SendMessageMiddleware" on "default"',
         ]);
         self::assertSpanEventsCount($middlewareSpan, 0);
     }
 
-    public function testException(): void
+    public function testDispatchOfAsyncExceptionMessage(): void
     {
         $this->bus->dispatch(new ExceptionMessage('test'));
 
@@ -64,9 +64,9 @@ class MessengerTracingTest extends KernelTestCase
         self::assertSpanName($middlewareSpan, 'messenger.middleware');
         self::assertSpanStatus($middlewareSpan, StatusData::ok());
         self::assertSpanAttributes($middlewareSpan, [
-            'event.category' => 'messenger.middleware',
-            'bus.name' => 'default',
-            'event.current' => '"Symfony\Component\Messenger\Middleware\SendMessageMiddleware" on "default"',
+            'symfony.messenger.event.category' => 'messenger.middleware',
+            'symfony.messenger.bus.name' => 'default',
+            'symfony.messenger.event.current' => '"Symfony\Component\Messenger\Middleware\SendMessageMiddleware" on "default"',
         ]);
         self::assertSpanEventsCount($middlewareSpan, 0);
     }

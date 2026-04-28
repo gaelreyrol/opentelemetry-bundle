@@ -2,18 +2,35 @@
 
 namespace FriendsOfOpenTelemetry\OpenTelemetryBundle\Instrumentation\Symfony\Messenger;
 
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SDK\Trace\Span;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Context\ContextStorageScopeInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 
+/**
+ * Wraps a middleware stack to create one span per middleware in the chain.
+ *
+ * Follows a "stop previous, start new" pattern (like Symfony's own TraceableStack
+ * with its Stopwatch): each call to next() closes the span/scope from the prior
+ * call before opening a new one, so at most one scope is active at any time.
+ *
+ * A simpler alternative would be to drop this class entirely and wrap the whole
+ * $stack->next()->handle() chain in a single span inside TraceableMessengerMiddleware
+ * (one activate/detach pair in try/finally). That removes per-middleware timing
+ * granularity but eliminates scope management complexity.
+ */
 class TraceableMessengerStack implements StackInterface
 {
     private ?string $currentEvent = null;
+    private ?ContextStorageScopeInterface $currentScope = null;
+    private ?SpanInterface $currentSpan = null;
+    private ?ContextInterface $parentContext = null;
 
     public function __construct(
         private TracerInterface $tracer,
@@ -26,36 +43,31 @@ class TraceableMessengerStack implements StackInterface
 
     public function next(): MiddlewareInterface
     {
-        $scope = Context::storage()->scope();
-        if (null !== $scope) {
-            $this->logger?->debug(sprintf('Using scope "%s"', spl_object_id($scope)));
-        } else {
-            $this->logger?->debug('No active scope');
+        // "Stop previous" — close the span/scope from the prior next() call
+        if (null !== $this->currentScope) {
+            $this->logger?->debug(sprintf('Detaching scope "%s"', spl_object_id($this->currentScope)));
+            $this->currentScope->detach();
+            $this->currentScope = null;
+
+            if (null !== $this->currentSpan) {
+                $this->currentSpan->setStatus(StatusCode::STATUS_OK);
+                $this->logger?->debug(sprintf('Ending span "%s"', $this->currentSpan->getContext()->getSpanId()));
+                $this->currentSpan->end();
+                $this->currentSpan = null;
+            }
         }
 
-        /*        if (null !== $scope) {
-                    $span = Span::fromContext($scope->context());
+        // Capture the parent context once (on the first call)
+        $this->parentContext ??= Context::getCurrent();
 
-                    if ($span->isRecording()) {
-                        $scope->detach();
-
-                        $span->setStatus(StatusCode::STATUS_OK);
-                        $this->logger?->debug(sprintf('Ending span "%s"', $span->getContext()->getSpanId()));
-                        $span->end();
-                    }
-                }*/
-
-        $spanBuilder = $this->tracer
+        // "Start new"
+        $span = $this->tracer
             ->spanBuilder('messenger.middleware')
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setParent($scope?->context())
-            ->setAttribute('event.category', $this->eventCategory)
-            ->setAttribute('bus.name', $this->busName)
-        ;
-
-        $parent = Context::getCurrent();
-
-        $span = $spanBuilder->setParent($parent)->startSpan();
+            ->setParent($this->parentContext)
+            ->setAttribute('symfony.messenger.event.category', $this->eventCategory)
+            ->setAttribute('symfony.messenger.bus.name', $this->busName)
+            ->startSpan();
 
         $this->logger?->debug(sprintf('Starting span "%s"', $span->getContext()->getSpanId()));
 
@@ -66,32 +78,44 @@ class TraceableMessengerStack implements StackInterface
         }
         $this->currentEvent .= sprintf(' on "%s"', $this->busName);
 
-        $span->setAttribute('event.current', $this->currentEvent);
+        $span->setAttribute('symfony.messenger.event.current', $this->currentEvent);
 
-        $context = $span->storeInContext($parent);
-        Context::storage()->attach($context);
+        $context = $span->storeInContext($this->parentContext);
+        $this->currentScope = Context::storage()->attach($context);
+        $this->currentSpan = $span;
 
         return $nextMiddleware;
     }
 
-    public function stop(): void
+    public function stop(?\Throwable $throwable = null): void
     {
-        $scope = Context::storage()->scope();
-        if (null === $scope) {
-            return;
+        if (null !== $this->currentScope) {
+            $this->logger?->debug(sprintf('Detaching scope "%s"', spl_object_id($this->currentScope)));
+            $this->currentScope->detach();
+            $this->currentScope = null;
         }
 
-        $scope->detach();
+        if (null !== $this->currentSpan) {
+            if (null !== $throwable) {
+                $this->currentSpan->recordException($throwable);
+                $this->currentSpan->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
+            } else {
+                $this->currentSpan->setStatus(StatusCode::STATUS_OK);
+            }
+            $this->logger?->debug(sprintf('Ending span "%s"', $this->currentSpan->getContext()->getSpanId()));
+            $this->currentSpan->end();
+            $this->currentSpan = null;
+        }
 
-        $span = Span::fromContext($scope->context());
-        $span->setStatus(StatusCode::STATUS_OK);
-        $this->logger?->debug(sprintf('Ending span "%s"', $span->getContext()->getSpanId()));
-        $span->end();
         $this->currentEvent = null;
     }
 
     public function __clone()
     {
         $this->stack = clone $this->stack;
+        $this->currentScope = null;
+        $this->currentSpan = null;
+        $this->parentContext = null;
+        $this->currentEvent = null;
     }
 }

@@ -29,7 +29,7 @@ final class HttpClientTracingTest extends KernelTestCase
                 'url' => 'http://localhost/ok',
                 'http_code' => 200,
                 'http_method' => 'GET',
-                'response_headers' => ['Content-Type' => 'application/json'],
+                'response_headers' => ['Content-Type' => 'application/json', 'Content-Length' => '16'],
             ])),
             self::getContainer()->get('open_telemetry.traces.tracers.main'),
             new Psr17Factory(),
@@ -39,7 +39,7 @@ final class HttpClientTracingTest extends KernelTestCase
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertSame('{"status": "ok"}', $response->getContent());
-        self::assertSame(['content-type' => ['application/json']], $response->getHeaders());
+        self::assertSame(['content-type' => ['application/json'], 'content-length' => ['16']], $response->getHeaders());
 
         self::assertSpansCount(1);
 
@@ -53,6 +53,7 @@ final class HttpClientTracingTest extends KernelTestCase
             'url.query' => '',
             'url.fragment' => '',
             'http.request.method' => 'GET',
+            'http.response.body.size' => '16',
             'http.response.status_code' => 200,
         ]);
         self::assertSpanEventsCount($mainSpan, 0);

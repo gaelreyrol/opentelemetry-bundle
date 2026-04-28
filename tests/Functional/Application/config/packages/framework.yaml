@@ -11,7 +11,10 @@ framework:
     system: cache.adapter.array
   messenger:
     transports:
-      main: 'trace(in-memory://default)'
+      main:
+        dsn: 'trace(in-memory://default)'
+        retry_strategy:
+          max_retries: 0
     routing:
       'App\Message\*': main
     buses:

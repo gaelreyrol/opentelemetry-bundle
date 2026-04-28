@@ -56,6 +56,9 @@ final class TraceableConsoleEventSubscriber implements EventSubscriberInterface,
         ];
     }
 
+    /**
+     * @return class-string[]
+     */
     public static function getSubscribedServices(): array
     {
         return [TracerInterface::class];

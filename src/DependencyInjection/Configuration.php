@@ -104,6 +104,7 @@ final class Configuration implements ConfigurationInterface
                                 (new ArrayNodeDefinition('exclude_commands'))
                                     ->info('Exclude commands from auto instrumentation')
                                     ->scalarPrototype()->cannotBeEmpty()->end()
+                                    ->defaultValue(['messenger:consume'])
                             ))
                             ->append($this->getMeteringInstrumentationNode())
                         ->end()

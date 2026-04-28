@@ -138,8 +138,8 @@ final class TraceableResponse implements ResponseInterface, StreamableInterface
         $statusCode = $this->response->getStatusCode();
         if (0 !== $statusCode && $this->span->isRecording()) {
             $headers = $this->response->getHeaders(false);
-            if (isset($headers['Content-Length'])) {
-                $this->span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $headers['Content-Length']);
+            if (isset($headers['content-length'][0])) {
+                $this->span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $headers['content-length'][0]);
             }
 
             $this->span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);

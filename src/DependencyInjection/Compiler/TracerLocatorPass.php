@@ -23,6 +23,10 @@ class TracerLocatorPass implements CompilerPassInterface
                 $traceableHttpKernelEventSubscriber = $container->getDefinition('open_telemetry.instrumentation.http_kernel.trace.event_subscriber');
                 $this->setTracerLocatorArgument($container, $traceableHttpKernelEventSubscriber, $tracers);
             }
+            if ($container->hasDefinition('open_telemetry.instrumentation.messenger.worker')) {
+                $messengerWorkerSubscriber = $container->getDefinition('open_telemetry.instrumentation.messenger.worker');
+                $this->setTracerLocatorArgument($container, $messengerWorkerSubscriber, $tracers);
+            }
         }
     }
 

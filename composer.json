@@ -62,6 +62,7 @@
         "phpunit/phpunit": "^13.0",
         "pyrech/composer-changelogs": "^2.2",
         "roave/security-advisories": "dev-master",
+        "symfony/amqp-messenger": "^7.4",
         "symfony/browser-kit": "^7.4",
         "symfony/cache": "^7.4",
         "symfony/framework-bundle": "^7.4",
@@ -127,9 +128,13 @@
     },
     "scripts": {
         "check-reqs": "@php tools/composer-require-checker/vendor/bin/composer-require-checker check",
-        "coverage": [
+        "coverage:html": [
             "@putenv XDEBUG_MODE=coverage",
-            "@phpunit --coverage-html=coverage"
+            "@phpunit --coverage-html=coverage/html"
+        ],
+        "coverage:xml": [
+            "@putenv XDEBUG_MODE=coverage",
+            "@phpunit --coverage-clover=coverage/coverage.xml"
         ],
         "format": [
             "@php-cs-fixer:fix",
