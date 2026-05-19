@@ -44,6 +44,8 @@ final class ConfigurationTest extends TestCase
 
         self::assertSame([
             'transport_http_client' => null,
+            'runtime' => 'auto',
+            'provider_source' => 'di',
             'service' => [],
             'instrumentation' => [
                 'cache' => [
@@ -151,6 +153,12 @@ final class ConfigurationTest extends TestCase
 
             # Service ID used for telemetry export transports. Must implement PSR-18 ClientInterface and PSR-17 RequestFactoryInterface, StreamFactoryInterface. Defaults to Symfony Psr18Client.
             transport_http_client: null
+
+            # PHP runtime model. `auto` detects FrankenPHP worker mode via \$_SERVER[APP_RUNTIME_MODE]; override with `classic` (FPM / CLI) or `frankenphp_worker` (long-lived worker).
+            runtime:              auto # One of "auto"; "classic"; "frankenphp_worker"
+
+            # Where OpenTelemetry providers come from. `di` builds them via this bundle (default). `globals` consumes providers from OpenTelemetry\\API\\Globals (the SDK must be bootstrapped externally, e.g. OTEL_PHP_AUTOLOAD_ENABLED=true).
+            provider_source:      di # One of "di"; "globals"
             service:
                 namespace:            ~ # Required, Example: MyOrganization
                 name:                 ~ # Required, Example: MyApp
@@ -269,7 +277,7 @@ final class ConfigurationTest extends TestCase
 
                     # Prototype
                     provider:
-                        type:                 default # One of "default"; "noop", Required
+                        type:                 default # One of "default"; "noop"; "globals", Required
                         sampler:
                             type:                 always_on # One of "always_off"; "always_on"; "parent_based_always_off"; "parent_based_always_on"; "parent_based_trace_id_ratio"; "trace_id_ratio"; "attribute_based"; "service", Required
 
@@ -317,7 +325,7 @@ final class ConfigurationTest extends TestCase
 
                     # Prototype
                     provider:
-                        type:                 default # One of "noop"; "default", Required
+                        type:                 default # One of "noop"; "default"; "globals", Required
                         exporter:             ~
                         filter:
                             type:                 none # One of "all"; "none"; "with_sampled_trace"; "service"
@@ -364,7 +372,7 @@ final class ConfigurationTest extends TestCase
 
                     # Prototype
                     provider:
-                        type:                 default # One of "default"; "noop", Required
+                        type:                 default # One of "default"; "noop"; "globals", Required
                         processor:            ~
                 processors:
 

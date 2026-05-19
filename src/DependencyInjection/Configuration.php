@@ -11,9 +11,11 @@ use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LogProcessor\Lo
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\ExemplarFilterEnum;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MeterProvider\MeterProviderEnum;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MetricExporter\MetricTemporalityEnum;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\ProviderSource;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\SpanProcessor\SpanProcessorEnum;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TracerProvider\TraceProviderEnum;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TraceSamplerEnum;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\Runtime\RuntimeMode;
 use Monolog\Level;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -34,6 +36,16 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('transport_http_client')
                     ->info('Service ID used for telemetry export transports. Must implement PSR-18 ClientInterface and PSR-17 RequestFactoryInterface, StreamFactoryInterface. Defaults to Symfony Psr18Client.')
                     ->defaultNull()
+                ->end()
+                ->enumNode('runtime')
+                    ->info('PHP runtime model. `auto` detects FrankenPHP worker mode via $_SERVER[APP_RUNTIME_MODE]; override with `classic` (FPM / CLI) or `frankenphp_worker` (long-lived worker).')
+                    ->defaultValue(RuntimeMode::Auto->value)
+                    ->values(array_map(static fn (RuntimeMode $mode) => $mode->value, RuntimeMode::cases()))
+                ->end()
+                ->enumNode('provider_source')
+                    ->info('Where OpenTelemetry providers come from. `di` builds them via this bundle (default). `globals` consumes providers from OpenTelemetry\\API\\Globals (the SDK must be bootstrapped externally, e.g. OTEL_PHP_AUTOLOAD_ENABLED=true).')
+                    ->defaultValue(ProviderSource::Di->value)
+                    ->values(array_map(static fn (ProviderSource $source) => $source->value, ProviderSource::cases()))
                 ->end()
             ->end()
         ;

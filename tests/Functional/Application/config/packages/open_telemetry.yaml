@@ -129,3 +129,15 @@ when@empty_excludes:
         tracing:
           enabled: true
           exclude_paths: []
+when@worker_mode:
+  open_telemetry:
+    runtime: frankenphp_worker
+    instrumentation:
+      http_kernel:
+        type: auto
+        tracing:
+          enabled: true
+          exclude_paths: []
+when@globals_mode:
+  open_telemetry:
+    provider_source: globals

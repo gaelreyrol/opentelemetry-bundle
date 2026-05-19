@@ -134,7 +134,8 @@ final class OpenTelemetryTracesExtension
                 $sampler,
                 isset($config['processors']) ? array_map(fn (string $processor) => new Reference($processor), $config['processors']) : null,
                 new Reference('open_telemetry.resource_info'),
-            ]);
+            ])
+            ->addTag('open_telemetry.traces.provider');
     }
 
     /**

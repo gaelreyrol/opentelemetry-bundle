@@ -8,6 +8,7 @@ use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LogExporter\Noo
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LogExporter\OtlpLogExporterFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LoggerProvider\AbstractLoggerProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LoggerProvider\DefaultLoggerProviderFactory;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LoggerProvider\GlobalsLoggerProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LoggerProvider\NoopLoggerProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LogProcessor\AbstractLogProcessorFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Log\LogProcessor\BatchLogProcessorFactory;
@@ -100,6 +101,9 @@ return static function (ContainerConfigurator $container): void {
             ->parent('open_telemetry.logs.provider_factory.abstract')
 
         ->set('open_telemetry.logs.provider_factory.default', DefaultLoggerProviderFactory::class)
+            ->parent('open_telemetry.logs.provider_factory.abstract')
+
+        ->set('open_telemetry.logs.provider_factory.globals', GlobalsLoggerProviderFactory::class)
             ->parent('open_telemetry.logs.provider_factory.abstract')
 
         ->set('open_telemetry.logs.provider_interface', LoggerProviderInterface::class)

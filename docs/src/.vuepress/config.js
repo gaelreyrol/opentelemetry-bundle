@@ -43,6 +43,7 @@ export default defineUserConfig({
                 text: 'How To',
                 children: [
                     '/how-to/docker-env-setup.md',
+                    '/how-to/frankenphp-runtime.md',
                 ],
             },
         ],

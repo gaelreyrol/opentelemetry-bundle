@@ -4,6 +4,7 @@ use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Context\Propagator\
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Context\Propagator\PropagatorFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Exporter\ExporterDsn;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Exporter\OtlpExporterOptions;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Globals\GlobalsInitializer;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Resource\ResourceInfoFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetryBundle;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
@@ -14,6 +15,9 @@ use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 return static function (ContainerConfigurator $container): void {
     $container->parameters()
@@ -45,5 +49,14 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('open_telemetry.otlp_exporter_options', OtlpExporterOptions::class)
             ->factory([OtlpExporterOptions::class, 'fromConfiguration'])
+
+        ->set('open_telemetry.globals_initializer', GlobalsInitializer::class)
+            ->args([
+                tagged_iterator('open_telemetry.traces.provider'),
+                tagged_iterator('open_telemetry.metrics.provider'),
+                tagged_iterator('open_telemetry.logs.provider'),
+                param('open_telemetry.provider_source'),
+            ])
+            ->tag('kernel.event_subscriber')
     ;
 };

@@ -142,7 +142,8 @@ final class OpenTelemetryLogsExtension
             ->setArguments([
                 isset($config['processor']) ? new Reference($config['processor']) : null,
                 new Reference('open_telemetry.resource_info'),
-            ]);
+            ])
+            ->addTag('open_telemetry.logs.provider');
     }
 
     /**

@@ -6,4 +6,5 @@ enum LoggerProviderEnum: string
 {
     case Default = 'default';
     case Noop = 'noop';
+    case Globals = 'globals';
 }

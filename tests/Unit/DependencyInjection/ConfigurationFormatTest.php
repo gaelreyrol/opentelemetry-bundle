@@ -25,6 +25,8 @@ final class ConfigurationFormatTest extends AbstractExtensionConfigurationTestCa
     {
         $expectedConfiguration = [
             'transport_http_client' => null,
+            'runtime' => 'auto',
+            'provider_source' => 'di',
             'service' => [
                 'namespace' => 'FriendsOfOpenTelemetry/OpenTelemetry',
                 'name' => 'Test',

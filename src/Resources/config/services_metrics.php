@@ -3,6 +3,7 @@
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\ExemplarFilterFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MeterProvider\AbstractMeterProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MeterProvider\DefaultMeterProviderFactory;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MeterProvider\GlobalsMeterProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MeterProvider\NoopMeterProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MetricExporter\AbstractMetricExporterFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Metric\MetricExporter\ConsoleMetricExporterFactory;
@@ -76,6 +77,9 @@ return static function (ContainerConfigurator $container): void {
             ->parent('open_telemetry.metrics.provider_factory.abstract')
 
         ->set('open_telemetry.metrics.provider_factory.default', DefaultMeterProviderFactory::class)
+            ->parent('open_telemetry.metrics.provider_factory.abstract')
+
+        ->set('open_telemetry.metrics.provider_factory.globals', GlobalsMeterProviderFactory::class)
             ->parent('open_telemetry.metrics.provider_factory.abstract')
 
         ->set('open_telemetry.metrics.provider_interface', MeterProviderInterface::class)

@@ -6,4 +6,5 @@ enum MeterProviderEnum: string
 {
     case Noop = 'noop';
     case Default = 'default';
+    case Globals = 'globals';
 }

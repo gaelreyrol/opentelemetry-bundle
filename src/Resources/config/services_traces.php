@@ -13,6 +13,7 @@ use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\SpanProcessor
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\SpanProcessor\SimpleSpanProcessorFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TracerProvider\AbstractTracerProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TracerProvider\DefaultTracerProviderFactory;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TracerProvider\GlobalsTracerProviderFactory;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\Trace\TracerProvider\NoopTracerProviderFactory;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
@@ -95,6 +96,9 @@ return static function (ContainerConfigurator $container): void {
             ->parent('open_telemetry.traces.provider_factory.abstract')
 
         ->set('open_telemetry.traces.provider_factory.default', DefaultTracerProviderFactory::class)
+            ->parent('open_telemetry.traces.provider_factory.abstract')
+
+        ->set('open_telemetry.traces.provider_factory.globals', GlobalsTracerProviderFactory::class)
             ->parent('open_telemetry.traces.provider_factory.abstract')
 
         ->set('open_telemetry.traces.provider_interface', TracerProviderInterface::class)

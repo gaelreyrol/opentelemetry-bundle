@@ -4,6 +4,9 @@ namespace FriendsOfOpenTelemetry\OpenTelemetryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use FriendsOfOpenTelemetry\OpenTelemetryBundle\Instrumentation\InstrumentationTypeEnum;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\OpenTelemetry\ProviderSource;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\Runtime\RuntimeDetector;
+use FriendsOfOpenTelemetry\OpenTelemetryBundle\Runtime\RuntimeMode;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
@@ -53,13 +56,54 @@ final class OpenTelemetryExtension extends ConfigurableExtension
         $loader->load('services_tracing_instrumentation.php');
         $loader->load('services_metering_instrumentation.php');
 
+        $this->registerRuntime($mergedConfig, $container);
         $this->registerTransportHttpClient($mergedConfig['transport_http_client'], $container);
         $this->registerService($mergedConfig['service'], $container);
         $this->registerInstrumentation($mergedConfig['instrumentation'], $container);
 
+        if (ProviderSource::Globals->value === $mergedConfig['provider_source']) {
+            $mergedConfig['traces'] = $this->forceProviderType($mergedConfig['traces']);
+            $mergedConfig['metrics'] = $this->forceProviderType($mergedConfig['metrics']);
+            $mergedConfig['logs'] = $this->forceProviderType($mergedConfig['logs']);
+        }
+
         (new OpenTelemetryTracesExtension())($mergedConfig['traces'], $container);
         (new OpenTelemetryMetricsExtension())($mergedConfig['metrics'], $container);
         (new OpenTelemetryLogsExtension())($mergedConfig['logs'], $container);
+    }
+
+    /**
+     * @param array{providers: array<string, array{type: string}>} $section
+     *
+     * @return array{providers: array<string, array<string, mixed>>}
+     */
+    private function forceProviderType(array $section): array
+    {
+        foreach (array_keys($section['providers']) as $name) {
+            $section['providers'][$name]['type'] = 'globals';
+        }
+
+        return $section;
+    }
+
+    /**
+     * @param array{
+     *     runtime: string,
+     *     provider_source: string,
+     * } $config
+     */
+    private function registerRuntime(array $config, ContainerBuilder $container): void
+    {
+        $configuredRuntime = RuntimeMode::from($config['runtime']);
+        $providerSource = ProviderSource::from($config['provider_source']);
+
+        $container->setParameter('open_telemetry.runtime.configured', $configuredRuntime->value);
+        $container->setParameter('open_telemetry.provider_source', $providerSource->value);
+
+        $container->register('open_telemetry.runtime_detector', RuntimeDetector::class)
+            ->setArguments([$configuredRuntime])
+            ->setPublic(false);
+        $container->setAlias(RuntimeDetector::class, 'open_telemetry.runtime_detector');
     }
 
     /**
